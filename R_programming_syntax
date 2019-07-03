@@ -1,0 +1,116 @@
+ls()  Prints all the variable names in the memory
+
+'<-'  is same as '='
+
+c(1,2,6,7)  creates a vector(data structure) of size 4 ;c stands for combine
+**Try not to combine 2 differnt data types in one vector
+
+vector1[3] Output the 3rd element of vector1
+
+seq(a,b,c)    creates a sequence of numbers start from a end at b with
+              each increment of c.
+
+Data Frames (A data structure)
+DataFrame = data.frame(vector1,vector2) combines 2 vectors to form a single
+Frame
+
+DataFrame $ newVector = c(23,9,24,42)
+
+NewDataFrame  = rbind(DataFrame1,DataFrame2)  combines data Frames by stacking
+the rows.
+
+getwd()   :prints working directory
+
+names(DataFrame)	return the names of all the varibles in the DataFrames
+
+
+WHO_Dataframe(that will be created)=read.csv("WHO_filename.csv")
+
+Types of variable
+  1.Factor
+  2.num : numerical
+  3.int : integers
+  4.Logical : TRUE / FALSE
+No of differnt levels means no of possible valuues
+
+str(DataFrame)
+summary(DataFrame)     NA ("indicate that values are missing ")
+DataFrame $ Variable_name  (outputs the vector corresponding to that varible)
+
+mean(DataFrame $ Variable_name )	(gives mean)
+sd(DataFrame $ Variable_name )		(gives standard deviation)
+summary(DataFrame $ Variable_name )	(mean median	1st Quartile: value for which 25% of data is less than this
+							3rd Quartile: value for which 75% of data is less than this)
+which.min(DataFrame $ Variable_name),which.max()   	(returns the row no. of the one with min and max values)
+
+plot(DataFrame $ Var1,DataFrame $ Var2)		(scatter plot)
+
+nrow(DataFrame)		(no of rows/obsrvations)
+
+his(WHO $ Var)		(plots a histogram a histogram is useful for anlysing the distrubtn of a var)
+
+
+
+boxplot(WHO $ Var - WHO $ Var2)		(creates a boxplot to show range of var1 ---  :whiskers show range  box(from 1st to 3rd quartile 
+						O :Outliers compputed as those that are higher than )
+https://www.youtube.com/watch?v=FRlTh5HQORA
+
+
+boxplot(WHO $ Var - WHO $ Var2,xlab="X-Axis",y-lab="Y-Axis",main="Title")
+
+tables(WHO $ Var)		(Summary )
+
+
+tapply(WHO$Over60,WHO$Region,mean)		Splits the data/occurance according to region(1) and take the mean(3) of the data of variable 							Over60(1)
+
+
+
+# to comment
+
+match("TEXT",vector_name)	will search for the text in the vector
+
+
+
+
+
+
+
+as.numeric(vector) changes logical values to numeric
+
+
+modelname=lm( dep_var ~ indep_var,data=data_frame)	lm:linear model
+
+
+Residuals: Erroe terms
+intercept: Beta_0
+varname: Beta_1 
+
+
+Multiple R-squared: As discussed in the video
+Adjusted R-squared: R^2 adjusted for the "no of variables used relative to the number of data points".
+
+"Multiple R^2 always increase when more variables are added but Adjusted R^2 may decrease when more variables are added."
+
+
+
+predict(modelname,newdata=teat_dataframe)
+
+
+
+
+SSE=sum(modelname $ residuals^2)   
+
+if any varible begins with a no. R will put an 'X' in front of it. 
+How do you access the adjusted r squared and the multiple r squared in the linear regression output because I obtain NULL?
+
+Did a little experimenting. We could also use:
+
+> summary(model2)$r.squared
+[1] 0.7073708   
+
+summary(model2)$adj.r.squared
+[1] 0.6807681
+
+
+https://stackoverflow.com/questions/23299684/r-error-in-xed-operator-is-invalid-for-atomic-vectors/23299813
+

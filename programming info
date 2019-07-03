@@ -1,0 +1,2 @@
+a<<1 "SHift the bit sequence by 1 to the left"
+a>>1 "Shift the bit sequence by 1 to the right"
