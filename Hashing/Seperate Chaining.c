@@ -8,138 +8,170 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct node node;
+#define LOAD_FACTOR 10
 
-struct node
+typedef struct Listnode Listnode;
+typedef struct HashTableNode HashTableNode;
+typedef struct HashTable HashTable;
+
+struct Listnode
 {
+  int key;
   int data;
-  struct node *next;
-}*head=NULL;
+  struct Listnode *next;
+};
 
-
-node* create_LinkList()
+struct HashTableNode
 {
-  node *prev,*head,*curr;
-  head=(node*)malloc(sizeof(node));
-  curr=head;
-  int query=1;
-  printf("Enter value of 1st element\n" );
-  scanf("%d",&head->data);
-  printf("Enter 1 if you you want to add more\n");
-  scanf("%d",&query);
-  curr->next=NULL;
-                  //if query==1 then will continue to add elements else will stop
+  int b_count;                    //number of elements in the block
+  struct HashTableNode *next;
+};
 
-  while(query==1)
-  {
-    prev=curr;
-    curr=(node*)malloc(sizeof(node));
-    prev->next=curr;
-    printf("Enter value of next element\n" );
-    scanf("%d",&curr->data);
-    curr->next=NULL;
-    printf("Enter 1 if you you want to add more\n" );
-    scanf("%d",&query);
-  }
-  return head;
+struct HashTable
+{
+  int t_size;                       // no of index(block) in the hash table
+  int count;                        // no of elements in table
+  struct HashTableNode **Table;     // array of pointers to corresponding chains
+};
+
+
+void Rehash(HashTable *h)
+{
+  printf("This facility isn't available right now\n" );
 }
 
-void print_LinkList(node* head)
+HashTable *create_HashTable(int size)
 {
-  node *curr=head;
+  HashTable *h;
+  h=(HashTable*)malloc(sizeof(HashTable));
+  if(!h)
+    return NULL;
 
-  if(curr==NULL)
-    printf("List is empty\n");
+  h->t_size=size/LOAD_FACTOR;
+  h->count=0;
+  h->Table=(HashTable**)malloc(sizeof(HashTable*)*h->t_size);
 
-  while(curr)
+  if(!h->Table)
   {
-    printf("%d  ",curr->data );
-    curr=curr->next;
+    printf("Memory Error\n");
+    return NULL;
   }
-  printf("\n");
+
+  for(int i=0;i<h->t_size;i++)
+  {
+    h->Table[i]->next=NULL;
+    h->Table[i]->b_count=0;
+  }
+
+  return h;
 }
 
-void delete_LinkList(node** head)
+int HashSearch(HashTable *h,int data)
 {
-  node *iterator,*auxillary;
-  iterator=*head;
-
-  while (iterator)
+  Listnode *temp;
+  temp=h->Table[Hash(data,h->t_size)]->next;
+  while (temp)
   {
-    auxillary=iterator->next;
-    free(iterator);
-    iterator=auxillary;
+    if(temp->data==data)
+      return 1;                                     //found it
+    temp=temp->next;
   }
-  *head=NULL;
+  return 0;
 }
 
-void sorted_insert(node **head,int value)
+int HashInsert(HashTable *h,int data)
 {
+  int index;
+  Listnode *temp,*new_node;
+  if(HashSearch(h,data))
+    return 0;
 
-  node *curr=*head,*new_node,*prev;
-  new_node=(node*)malloc(sizeof(node));
-  new_node->data=value;
-
-  if(*head==NULL)
-    *head=new_node;
-
-  if(curr->data > value)
+  index=Hash(data,h->t_size);
+  temp=h->Table[index]->next;
+  new_node=(Listnode*)malloc(sizeof(Listnode));
+  if(!new_node)
   {
-    new_node->next=curr;
-    *head=new_node;
+    printf("Out of Space\n" );
+    return -1;
   }
+  new_node->data=data;
+  new_node->key=index;
+  new_node->next=temp;
+  h->Table[index]->next=new_node;
+  h->Table[index]->b_count++;
+  h->count++;
+
+  if(h->count/h->t_size > LOAD_FACTOR)
+    Rehash(h);
+    return 1;
+}
+
+int HashDelete(HashTable *h,int data)
+{
+  int index;
+  Listnode *temp,*prev;
+  index=Hash(data,h->t_size);
+
+  for( temp=temp=h->Table[index]->next, prev=NULL ; temp ;prev=temp , temp=temp->next)
+  {
+    if(temp->data==data)
+    {
+      if(prev)
+        prev->next=temp->next;
+      free(temp);
+      h->Table[index]->b_count--;
+      h->count--;
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
+void print_hash_table(HashTable *h)
+{
+  if(!h)
+    printf("Nothing to print\n" );
+
   else
   {
-    prev=curr;
-    curr=curr->next;
-    while (curr->next)
+    for(int i=0;i<h->t_size;i++)
     {
-      if(value < curr->data)
+
+      for(Listnode *temp=h->Table[i]->next ; temp ; temp=temp->next)
       {
-        new_node->next=curr;
-        prev->next=new_node;
-        break;
+        printf("%d ",temp->data);
+
       }
-      curr=curr->next;
-      prev=prev->next;
+      printf("\n");
     }
-
   }
 
 }
-
-int hashf(int key)
+int Hash(int data,int t_size)
 {
-  return key%10;
+  return data%t_size;
 }
-
-void insert_in_hash_table(node *hash[],int key)
-{
-  node *head=*hash;
-  int index=hashf(key);
-  sorted_insert((head[index]),key);
-}
-
-void print_hash_table(node **hash)
-{
-  node *head=*hash;
-  for(int i=0;i<10;i++)
-  {
-    print_LinkList(head+i);
-  }
-}
-
 
 
 int main()
 {
-  node *hash[10];
-  for(int i=0;i<10;i++)
-    hash[i]=NULL;                 //initailizing hash table
+  int size;
+  printf("How many numbers will be there in hash table\n");
+  scanf("%d",&size);
+  HashTable *hash=create_HashTable(size);
 
-  insert_in_hash_table(hash,12);
-  insert_in_hash_table(hash,22);
-  insert_in_hash_table(hash,2);
+  int flag=1,int data;
+  do
+  {
+    printf("Enter the data that you want to add\n");
+    scanf("%d",&data);
+
+    HashInsert(Hash,data);
+
+    printf("Enter 1 if you want to add more data\n");
+    scanf("%d",&flag);
+  }while (flag==1);
 
   print_hash_table(hash);
 
