@@ -22,11 +22,11 @@
 
  long long derrangemt(int n)
 {
-   long long no_ways=0;
+  long long no_ways=0;
   int length=n,multiplier=1;
   for(int i=0;i<=length+1;i++,multiplier*=-1)
   {
-    no_ways+=(factorial(n)*multiplier)/factorial(i);
+    no_ways+=( (factorial(n))*multiplier/factorial(i) )%1000000007;
   }
   return no_ways;
 }
@@ -40,7 +40,7 @@ int main()
   {
     scanf("%d",&n);
     no_ways=derrangemt(n);
-    printf("%llu\n",no_ways%1000000007);
+    printf("%llu\n",no_ways);
   }
   return 0;
 }

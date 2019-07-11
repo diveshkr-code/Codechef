@@ -8,8 +8,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define LOAD_FACTOR 10
+#define LOAD_FACTOR 5
 
+//All the data structures
 typedef struct Listnode Listnode;
 typedef struct HashTableNode HashTableNode;
 typedef struct HashTable HashTable;
@@ -18,75 +19,119 @@ struct Listnode
 {
   int key;
   int data;
-  struct Listnode *next;
+  Listnode *next;
 };
 
 struct HashTableNode
 {
   int b_count;                    //number of elements in the block
-  struct HashTableNode *next;
+  Listnode *next;                 //the next pointer will point to the head of Singly Linked List if non-empty else  NULL
 };
 
 struct HashTable
 {
   int t_size;                       // no of index(block) in the hash table
   int count;                        // no of elements in table
-  struct HashTableNode **Table;     // array of pointers to corresponding chains
+  HashTableNode **Table;     // array of pointers to corresponding chains
 };
 
-
-void Rehash(HashTable *h)
+//Hash Function
+int Hash(int key,int t_size)
 {
-  printf("This facility isn't available right now\n" );
+  return key%t_size;
 }
+
 
 HashTable *create_HashTable(int size)
 {
   HashTable *h;
   h=(HashTable*)malloc(sizeof(HashTable));
   if(!h)
-    return NULL;
-
-  h->t_size=size/LOAD_FACTOR;
-  h->count=0;
-  h->Table=(HashTable**)malloc(sizeof(HashTable*)*h->t_size);
-
-  if(!h->Table)
   {
     printf("Memory Error\n");
     return NULL;
   }
 
+  h->count=0;
+  h->t_size=size/LOAD_FACTOR ;
+  h->Table=(HashTableNode**)malloc(sizeof(HashTableNode*)*(h->t_size));
+  if(!h->Table)
+    {
+      printf("Memory Error\n");
+      return NULL;
+    }
+
   for(int i=0;i<h->t_size;i++)
   {
+    h->Table[i]=(HashTableNode*)malloc(sizeof(HashTableNode));            //when dynamically allocting a 2-D arry with array of pointers the for
+    //pinter in the array you have to dynamically allocate memory refer :https://www.geeksforgeeks.org/dynamically-allocate-2d-array-c/.
     h->Table[i]->next=NULL;
     h->Table[i]->b_count=0;
   }
-
   return h;
 }
 
-int HashSearch(HashTable *h,int data)
+void Rehash(HashTable **h)
+{
+  HashTable *newHash=*h;
+  int oldsize,i,index;
+  Listnode *temp,*temp2,*p;
+  HashTableNode **oldTable;
+  oldsize=newHash->t_size;
+  oldTable=newHash->Table;
+  newHash->t_size=newHash->t_size*2;
+  newHash->count=newHash->count+1;
+
+  newHash->Table=(HashTableNode**)malloc(sizeof(HashTableNode)*newHash  ->t_size);
+  if(!newHash->Table)
+  {
+    printf("Memory Error\n");
+    return;
+  }
+  for(int i=0;i<newHash->t_size;i++)
+    newHash->Table[i]=(HashTableNode*)malloc(sizeof(HashTableNode));
+
+
+  for(int i=0;i<oldsize;i++)
+  {
+    for(temp=oldTable[i]->next;temp;temp=temp->next)
+    {
+      index=Hash(temp->key,newHash->t_size);
+      temp2=temp;
+      temp=temp->next;
+      temp2->next=newHash->Table[index]->next;
+      newHash->Table[index]->next=temp2;
+    }
+  }
+  h=&newHash;
+}
+
+
+int HashSearch(HashTable *h,int key)
 {
   Listnode *temp;
-  temp=h->Table[Hash(data,h->t_size)]->next;
+  temp=( h->Table[Hash(key,h->t_size)] )->next;
   while (temp)
   {
-    if(temp->data==data)
+    if(temp->key==key)
       return 1;                                     //found it
     temp=temp->next;
   }
   return 0;
 }
 
-int HashInsert(HashTable *h,int data)
+int HashInsert(HashTable *h,int key,int data)
 {
   int index;
   Listnode *temp,*new_node;
-  if(HashSearch(h,data))
+  if(HashSearch(h,key))
     return 0;
 
-  index=Hash(data,h->t_size);
+
+  if((h->count+1)/h->t_size > LOAD_FACTOR)
+    Rehash(&h);
+
+  index=Hash(key,h->t_size);
   temp=h->Table[index]->next;
   new_node=(Listnode*)malloc(sizeof(Listnode));
   if(!new_node)
@@ -95,29 +140,29 @@ int HashInsert(HashTable *h,int data)
     return -1;
   }
   new_node->data=data;
-  new_node->key=index;
+  new_node->key=key;
   new_node->next=temp;
   h->Table[index]->next=new_node;
   h->Table[index]->b_count++;
   h->count++;
 
-  if(h->count/h->t_size > LOAD_FACTOR)
-    Rehash(h);
-    return 1;
+  return 1;
 }
 
-int HashDelete(HashTable *h,int data)
+int HashDelete(HashTable *h,int key)
 {
   int index;
   Listnode *temp,*prev;
-  index=Hash(data,h->t_size);
+  index=Hash(key,h->t_size);
 
-  for( temp=temp=h->Table[index]->next, prev=NULL ; temp ;prev=temp , temp=temp->next)
+  for( temp=h->Table[index]->next, prev=NULL ; temp ;prev=temp , temp=temp->next)
   {
-    if(temp->data==data)
+    if(temp->key==key)
     {
       if(prev)
         prev->next=temp->next;
+      else
+        h->Table[index]->next=NULL;
       free(temp);
       h->Table[index]->b_count--;
       h->count--;
@@ -135,6 +180,7 @@ void print_hash_table(HashTable *h)
 
   else
   {
+    printf("Start of Hash\n" );
     for(int i=0;i<h->t_size;i++)
     {
 
@@ -145,12 +191,9 @@ void print_hash_table(HashTable *h)
       }
       printf("\n");
     }
+    printf("End of Hash Table\n");
   }
 
-}
-int Hash(int data,int t_size)
-{
-  return data%t_size;
 }
 
 
@@ -159,21 +202,36 @@ int main()
   int size;
   printf("How many numbers will be there in hash table\n");
   scanf("%d",&size);
-  HashTable *hash=create_HashTable(size);
+  HashTable *h=create_HashTable(size);
 
-  int flag=1,int data;
+  int flag=1;
+  int data,key;
   do
   {
-    printf("Enter the data that you want to add\n");
-    scanf("%d",&data);
+    printf("Enter the data that you want to add a Space and the key assiciated with it\n");
+    scanf("%d %d",&data,&key);
 
-    HashInsert(Hash,data);
+    HashInsert(h,key,data);
 
     printf("Enter 1 if you want to add more data\n");
     scanf("%d",&flag);
   }while (flag==1);
+  print_hash_table(h);
 
-  print_hash_table(hash);
+//deleting hash table and then printing it
+  int delflag=0;                      // 0:no deleting
+  printf("Enter 1 if you want to delete elements from hash table\n");
+  scanf("%d",&delflag);
+  while (delflag==1)
+  {
+    printf("Enter the key of the element that you want to delete\n");
+    scanf("%d",&key);
+    HashDelete(h,key);
+    printf("Do you want to delete more entre 1 if yes\n");
+    scanf("%d",&delflag);
+  }
+
+  print_hash_table(h);
 
   return 0;
 }
