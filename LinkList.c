@@ -73,6 +73,25 @@ void delete_LinkList(node **head)
   *head=NULL;
 }
 
+//revll_pairs() function  will reverse linked list in pairs e.g. 1->2->3->4->NULL will result in 2->1->4->3->NULL
+node *revll_pairs(node *head)
+{
+  node *temp,*curr=head,*link;
+  if(!curr)
+    temp = NULL;
+  else
+    temp = curr->next;
+
+  if(!temp)
+    return curr ;
+
+  link = revll_pairs(temp->next);
+  curr->next = link;
+  temp->next = curr;
+  return temp;
+
+}
+
 
 
 
@@ -81,6 +100,8 @@ int main()
   node *head=create_LinkList();
   print_LinkList(head);
   delete_LinkList(&head);
+  print_LinkList(head);
+  head = revll_pairs(head);
   print_LinkList(head);
   return 0;
 }

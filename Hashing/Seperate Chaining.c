@@ -105,7 +105,7 @@ void Rehash(HashTable **h)
   }
   h=&newHash;
 }
-
+//Complexity:O(n)
 
 int HashSearch(HashTable *h,int key)
 {
@@ -119,6 +119,7 @@ int HashSearch(HashTable *h,int key)
   }
   return 0;
 }
+//Complexity:O(n) ; O(1) for average case
 
 int HashInsert(HashTable *h,int key,int data)
 {
@@ -148,6 +149,7 @@ int HashInsert(HashTable *h,int key,int data)
 
   return 1;
 }
+//Complexity:O(n) ; O(1) for average case
 
 int HashDelete(HashTable *h,int key)
 {
@@ -172,6 +174,7 @@ int HashDelete(HashTable *h,int key)
 
   return 0;
 }
+//Complexity:O(n) ; O(1) for average case
 
 void print_hash_table(HashTable *h)
 {
